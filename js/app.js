@@ -88,6 +88,131 @@ function launchConfetti(count = 100, durationMs = 2000) {
   requestAnimationFrame(frame);
 }
 
+// ---------- Virtual keyboard (lesson intro + live in-game hint) ----------
+function buildKeyboard(container) {
+  container.innerHTML = '';
+  const map = new Map();
+  KEYBOARD_ROWS.forEach(row => {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'keyboard-row';
+    row.forEach(label => {
+      const keyEl = document.createElement('div');
+      keyEl.className = 'vkey' + (label === 'Space' ? ' spacebar' : label === 'Enter' ? ' wide' : '');
+      keyEl.textContent = KEY_DISPLAY[label] || label;
+      const char = charFromKeyLabel(label);
+      if (char !== null) map.set(char, keyEl);
+      rowEl.appendChild(keyEl);
+    });
+    container.appendChild(rowEl);
+  });
+  return map;
+}
+
+// Builds two hand illustrations (img/hand.svg, mirrored for the left hand — see
+// FINGER_TIP_FRACTIONS comment in keyboard-data.js) resting in a natural, fixed pose over
+// the home row of a rendered keyboard. The hands never relocate; layout(chars) only
+// toggles a glowing marker at the fixed fingertip position of whichever finger(s) are
+// responsible for `chars` (plus a subtle whole-hand emphasis), so the right finger is
+// always pointed out even for keys far from the home row.
+const HAND_SIDES = [
+  { side: 'left', homeChar: 'd', mirrored: false },  // anchor: left hand's middle finger home key
+  { side: 'right', homeChar: 'k', mirrored: true },  // anchor: right hand's middle finger home key
+];
+const FINGER_ROLES = ['pinky', 'ring', 'middle', 'index', 'thumb'];
+
+function buildHandsOverlay(container, keyMap) {
+  const overlay = document.createElement('div');
+  overlay.className = 'keyboard-hands';
+
+  const figures = {};
+  const fingerEls = new Map(); // 'left pinky' -> marker element
+
+  HAND_SIDES.forEach(({ side }) => {
+    const figure = document.createElement('div');
+    figure.className = `hand-figure hand-${side}`;
+
+    const img = document.createElement('img');
+    img.className = 'hand-art';
+    img.src = 'img/hand.svg';
+    img.alt = '';
+    figure.appendChild(img);
+
+    FINGER_ROLES.forEach(role => {
+      const frac = FINGER_TIP_FRACTIONS[role];
+      const marker = document.createElement('div');
+      marker.className = 'finger-tip-marker';
+      marker.style.left = `${frac.x * 100}%`;
+      marker.style.top = `${frac.y * 100}%`;
+      figure.appendChild(marker);
+      fingerEls.set(`${side} ${role}`, marker);
+    });
+
+    overlay.appendChild(figure);
+    figures[side] = figure;
+  });
+
+  container.appendChild(overlay);
+
+  // Anchors each hand figure so its middle-fingertip marker sits at the top edge of that
+  // hand's middle-finger home key, letting the rest of the (fixed-pose) hand fall
+  // naturally down/across the home row — recomputed on resize since key pixel positions
+  // change, but never in response to which key is active.
+  function reposition() {
+    HAND_SIDES.forEach(({ side, homeChar, mirrored }) => {
+      const figure = figures[side];
+      const keyEl = keyMap.get(homeChar);
+      const size = figure.offsetWidth;
+      if (!keyEl || !size) return;
+      const kb = container.getBoundingClientRect();
+      const kr = keyEl.getBoundingClientRect();
+      const midFrac = FINGER_TIP_FRACTIONS.middle;
+      // The right hand is mirrored (CSS scaleX(-1)), so a marker drawn at local fraction
+      // `f` from the figure's left edge actually renders on-screen at `1 - f` — account
+      // for that here so the middle-fingertip marker lands exactly on its home key.
+      const screenFracX = mirrored ? 1 - midFrac.x : midFrac.x;
+      const keyCenterX = kr.left - kb.left + kr.width / 2;
+      const keyTopY = kr.top - kb.top;
+      figure.style.left = `${keyCenterX - screenFracX * size}px`;
+      figure.style.top = `${keyTopY - midFrac.y * size - size * 0.05}px`;
+    });
+  }
+
+  function layout(activeChars) {
+    reposition();
+
+    const activeFingerNames = new Set();
+    activeChars.forEach(c => {
+      const fname = FINGER_LABELS[c];
+      if (fname) activeFingerNames.add(fname);
+    });
+
+    fingerEls.forEach((el, name) => el.classList.toggle('active', activeFingerNames.has(name)));
+    HAND_SIDES.forEach(({ side }) => {
+      const hasActive = [...activeFingerNames].some(name => name.startsWith(side));
+      figures[side].classList.toggle('active-hand', hasActive);
+    });
+  }
+
+  layout([]);
+  return { layout };
+}
+
+function setActiveKeys(map, handsCtrl, chars, rememberKey) {
+  map.forEach(el => el.classList.remove('active'));
+  chars.forEach(c => { const el = map.get(c); if (el) el.classList.add('active'); });
+  handsCtrl.layout(chars);
+  if (rememberKey) state[rememberKey] = chars;
+}
+
+const gameKeyboardMap = buildKeyboard(document.getElementById('game-keyboard'));
+const gameHands = buildHandsOverlay(document.getElementById('game-keyboard'), gameKeyboardMap);
+const introKeyboardMap = buildKeyboard(document.getElementById('intro-keyboard'));
+const introHands = buildHandsOverlay(document.getElementById('intro-keyboard'), introKeyboardMap);
+window.addEventListener('resize', () => {
+  gameHands.layout(state.gameActiveChars || []);
+  introHands.layout(state.introActiveChars || []);
+});
+
 // ---------- Screen management ----------
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
@@ -106,7 +231,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
 });
 document.getElementById('mute-toggle').addEventListener('click', (e) => {
   state.progress.muted = !state.progress.muted;
-  e.target.textContent = state.progress.muted ? '🔇' : '🔊';
+  e.currentTarget.innerHTML = state.progress.muted ? ICONS.volumeOff : ICONS.volumeOn;
   saveProgress();
 });
 
@@ -126,19 +251,43 @@ function renderLevelSelect() {
     card.className = 'level-card' + (locked ? ' locked' : '') + (level.isFinal ? ' final' : '');
     card.disabled = locked;
     card.innerHTML = `
-      <span class="level-num">${level.isFinal ? '🐝' : i + 1}</span>
+      <span class="level-num">${level.isFinal ? ICONS.bot : i + 1}</span>
       <span class="level-title">${level.title}</span>
       <span class="level-keys">${level.keys.map(k => `<kbd>${k}</kbd>`).join(' ')}</span>
       ${best ? `<span class="level-best">Best: ${best.wpm} WPM · ${best.accuracy}%</span>` : ''}
-      ${locked ? '<span class="level-lock">🔒</span>' : ''}
+      ${locked ? `<span class="level-lock">${ICONS.lock}</span>` : ''}
     `;
-    if (!locked) card.addEventListener('click', () => startLevel(i));
+    if (!locked) card.addEventListener('click', () => enterLessonIntro(i));
     grid.appendChild(card);
   });
 }
 
 document.getElementById('back-to-levels').addEventListener('click', () => {
   document.removeEventListener('keydown', onKeyDown);
+  renderLevelSelect();
+  showScreen('levels');
+});
+
+// ---------- Lesson intro / tutorial screen ----------
+function enterLessonIntro(levelIndex) {
+  state.pendingLevelIndex = levelIndex;
+  const level = LEVELS[levelIndex];
+  const newChars = level.keys.map(charFromKeyLabel).filter(c => c !== null);
+  document.getElementById('intro-title').textContent = level.title;
+  document.getElementById('intro-message').textContent = newChars.length
+    ? "New keys for this lesson — get your fingers ready:"
+    : "No new keys this time — let's review everything you've learned so far!";
+  document.getElementById('intro-finger-tips').innerHTML = newChars
+    .map(c => `<li><kbd>${displayChar(c)}</kbd>${FINGER_LABELS[c] || ''}</li>`)
+    .join('');
+  showScreen('lesson-intro'); // must run before layout — hands measure key positions via getBoundingClientRect
+  setActiveKeys(introKeyboardMap, introHands, newChars, 'introActiveChars');
+}
+
+document.getElementById('intro-start-btn').addEventListener('click', () => {
+  beginDrills(state.pendingLevelIndex);
+});
+document.getElementById('intro-back-to-levels').addEventListener('click', () => {
   renderLevelSelect();
   showScreen('levels');
 });
@@ -164,15 +313,21 @@ function updateVehiclePosition(progress) {
 }
 window.addEventListener('resize', () => updateVehiclePosition(state.currentProgress || 0));
 
+function displayChar(char) {
+  if (char === ' ') return '␣';
+  if (char === '\n') return '⏎';
+  return char;
+}
+
 function showKeyFeedback(char, isCorrect) {
   if (!char) return;
-  keyFeedbackEl.textContent = char === ' ' ? '␣' : char;
+  keyFeedbackEl.textContent = displayChar(char);
   keyFeedbackEl.classList.remove('correct', 'incorrect', 'pop');
   void keyFeedbackEl.offsetWidth; // restart the pop animation
   keyFeedbackEl.classList.add(isCorrect ? 'correct' : 'incorrect', 'pop');
 }
 
-function startLevel(levelIndex) {
+function beginDrills(levelIndex) {
   state.currentLevelIndex = levelIndex;
   state.currentDrillIndex = 0;
   showScreen('game');
@@ -193,9 +348,10 @@ function loadDrill() {
   statAccuracy.textContent = '100%';
   updateVehiclePosition(0);
   vehicleEl.classList.remove('brake');
-  keyFeedbackEl.textContent = ' ';
+  keyFeedbackEl.textContent = ' ';
   keyFeedbackEl.className = 'key-feedback';
   renderPromptChars(text, 0);
+  setActiveKeys(gameKeyboardMap, gameHands, text.length ? [text[0]] : [], 'gameActiveChars');
 }
 
 function renderPromptChars(text, currentIndex) {
@@ -203,8 +359,9 @@ function renderPromptChars(text, currentIndex) {
   const frag = document.createDocumentFragment();
   for (let i = 0; i < text.length; i++) {
     const span = document.createElement('span');
-    span.textContent = text[i] === ' ' ? ' ' : text[i];
+    span.textContent = displayChar(text[i]);
     span.className = i < currentIndex ? 'char correct' : i === currentIndex ? 'char current' : 'char pending';
+    if (text[i] === '\n') span.classList.add('char-newline');
     frag.appendChild(span);
   }
   promptEl.appendChild(frag);
@@ -216,6 +373,8 @@ function renderProgress(stats) {
   statWpm.textContent = `${stats.wpm} WPM`;
   statAccuracy.textContent = `${stats.accuracy}%`;
   showKeyFeedback(stats.lastChar, true);
+  const nextChar = state.engine.targetText[stats.index];
+  setActiveKeys(gameKeyboardMap, gameHands, nextChar !== undefined ? [nextChar] : [], 'gameActiveChars');
   sfx.key();
 }
 
@@ -230,11 +389,17 @@ function renderError(stats) {
   clearTimeout(state.brakeTimeout);
   state.brakeTimeout = setTimeout(() => vehicleEl.classList.remove('brake'), 250);
   showKeyFeedback(stats.lastChar, false);
+  setActiveKeys(gameKeyboardMap, gameHands, [state.engine.targetText[state.engine.index]], 'gameActiveChars');
   sfx.error();
 }
 
 function onKeyDown(e) {
-  if (e.key === 'Backspace' || e.key === 'Tab' || e.key === 'Enter' || e.key.startsWith('Arrow')) return;
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    state.engine.handleChar('\n');
+    return;
+  }
+  if (e.key === 'Backspace' || e.key === 'Tab' || e.key.startsWith('Arrow')) return;
   if (e.key.length !== 1) return; // ignore Shift/Control/Alt/Meta/CapsLock/etc — e.key already reflects shifted char
   e.preventDefault();
   state.engine.handleChar(e.key);
@@ -299,7 +464,7 @@ document.getElementById('next-level-btn').addEventListener('click', () => {
   hideOverlay('overlay-level-complete');
   const nextIndex = state.currentLevelIndex + 1;
   if (nextIndex < LEVELS.length && nextIndex <= state.progress.unlockedIndex) {
-    startLevel(nextIndex);
+    enterLessonIntro(nextIndex);
   } else {
     renderLevelSelect();
     showScreen('levels');
@@ -319,7 +484,7 @@ function triggerFinalCongrats() {
   sfx.fanfare();
   launchConfetti(220, 3200);
   setTimeout(() => {
-    vehicleEl.classList.add('is-bee');
+    vehicleEl.classList.add('is-robot');
     document.getElementById('congrats-name').textContent = state.progress.playerName;
     document.getElementById('congrats-recap').innerHTML = LEVELS.map(level => `
       <li>
@@ -334,14 +499,14 @@ function triggerFinalCongrats() {
 
 document.getElementById('congrats-restart-btn').addEventListener('click', () => {
   hideOverlay('overlay-congrats');
-  vehicleEl.classList.remove('is-bee', 'transforming');
+  vehicleEl.classList.remove('is-robot', 'transforming');
   renderLevelSelect();
   showScreen('levels');
 });
 
 // ---------- Boot ----------
 (function init() {
-  document.getElementById('mute-toggle').textContent = state.progress.muted ? '🔇' : '🔊';
+  document.getElementById('mute-toggle').innerHTML = state.progress.muted ? ICONS.volumeOff : ICONS.volumeOn;
   if (state.progress.playerName) {
     nameInput.value = state.progress.playerName;
   }

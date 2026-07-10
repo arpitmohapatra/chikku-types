@@ -38,6 +38,9 @@ body {
   font-size: 1.6rem;
   color: var(--accent-dark);
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .icon-btn {
@@ -49,8 +52,22 @@ body {
   font-size: 1.2rem;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .icon-btn:hover { transform: scale(1.05); }
+
+/* Inline Lucide icons (see js/icons-data.js) — sized in em so they scale with whatever
+   font-size their container already uses (same cascade emoji used to rely on). */
+.icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  flex-shrink: 0;
+}
+.primary-btn .icon { margin-left: 0.3em; vertical-align: -0.2em; }
+.overlay-card h2 .icon { margin-left: 0.3em; vertical-align: -0.15em; }
 
 .screen { display: none; }
 .screen.active { display: block; animation: fade-in 0.25s ease; }
@@ -90,6 +107,129 @@ body {
 .primary-btn { background: var(--accent); color: #fff; box-shadow: 0 6px 0 var(--accent-dark); }
 .primary-btn:hover { transform: translateY(2px); box-shadow: 0 4px 0 var(--accent-dark); }
 .secondary-btn { background: #eef1f6; color: var(--text-dark); margin-left: 0.6rem; }
+
+/* Virtual keyboard (lesson intro + live in-game hint) */
+.intro-panel { max-width: 640px; position: relative; }
+.intro-back { position: absolute; top: 1.2rem; left: 1.2rem; }
+#intro-message { color: #555; }
+.virtual-keyboard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 1.2rem 0 4rem;
+  user-select: none;
+}
+.keyboard-hands {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+/* Two fixed-pose hand illustrations resting over the home row (see buildHandsOverlay in
+   app.js). Each hand is always in the same spot; only its fingertip marker(s) light up. */
+.hand-figure {
+  position: absolute;
+  width: 11.5rem;
+  height: 11.5rem;
+  pointer-events: none;
+  opacity: 0.68;
+  transition: opacity 0.2s ease, left 0.18s ease, top 0.18s ease;
+}
+.hand-figure.active-hand { opacity: 0.92; }
+.hand-right { transform: scaleX(-1); }
+.hand-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.25));
+}
+.finger-tip-marker {
+  position: absolute;
+  width: 1.05rem;
+  height: 1.05rem;
+  border-radius: 50%;
+  background: #3a8bff;
+  box-shadow: 0 0 10px rgba(58,139,255,0.9);
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.finger-tip-marker.active {
+  transform: translate(-50%, -55%) scale(1);
+  opacity: 1;
+  animation: finger-glow 0.9s ease-in-out infinite;
+}
+@keyframes finger-glow {
+  0%, 100% { box-shadow: 0 0 10px rgba(58,139,255,0.8); }
+  50% { box-shadow: 0 0 18px rgba(58,139,255,1); }
+}
+.keyboard-row { display: flex; gap: 0.35rem; }
+.vkey {
+  min-width: 2.1rem;
+  height: 2.1rem;
+  padding: 0 0.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef1f6;
+  border: 1px solid #d8e0ea;
+  border-radius: 0.45rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-dark);
+  text-transform: lowercase;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+.vkey.wide { min-width: 4.5rem; }
+.vkey.spacebar { min-width: 14rem; }
+.vkey.active {
+  background: #3a8bff;
+  border-color: #2a6fd6;
+  color: #fff;
+  transform: translateY(-2px) scale(1.08);
+  box-shadow: 0 4px 10px rgba(58,139,255,0.5);
+  animation: key-glow 0.9s ease-in-out infinite;
+}
+@keyframes key-glow {
+  0%, 100% { box-shadow: 0 4px 10px rgba(58,139,255,0.5); }
+  50% { box-shadow: 0 4px 18px rgba(58,139,255,0.9); }
+}
+.finger-tips {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+.finger-tips li {
+  background: #eef1f6;
+  border-radius: 2rem;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.finger-tips li kbd {
+  background: #3a8bff;
+  color: #fff;
+  border-radius: 0.3rem;
+  padding: 0.1rem 0.4rem;
+  margin-right: 0.3rem;
+  text-transform: lowercase;
+}
+#game-keyboard { margin-top: 1rem; }
+
+@media (max-width: 640px) {
+  .vkey { min-width: 1.5rem; height: 1.7rem; font-size: 0.7rem; }
+  .vkey.wide { min-width: 3rem; }
+  .vkey.spacebar { min-width: 8rem; }
+  .hand-figure { width: 7.5rem; height: 7.5rem; }
+  .finger-tip-marker { width: 0.75rem; height: 0.75rem; }
+}
 
 /* Level select */
 #greeting { font-family: 'Fredoka', sans-serif; text-align: center; }
@@ -168,6 +308,8 @@ body {
   transform: translateY(-50%);
   font-size: 3rem;
   z-index: 1;
+  color: #fff;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
 }
 .vehicle {
   position: absolute;
@@ -178,10 +320,10 @@ body {
   transition: transform 0.16s ease-out;
   will-change: transform;
 }
-.vehicle .svg-car, .vehicle .svg-bee { width: 150px; display: block; }
-.vehicle .svg-bee { display: none; }
-.vehicle.is-bee .svg-car { display: none; }
-.vehicle.is-bee .svg-bee { display: block; }
+.vehicle .svg-car, .vehicle .svg-robot { width: 150px; display: block; }
+.vehicle .svg-robot { display: none; }
+.vehicle.is-robot .svg-car { display: none; }
+.vehicle.is-robot .svg-robot { display: block; }
 
 .vehicle.brake .svg-car {
   animation: brake-shake 0.25s ease;
@@ -225,6 +367,8 @@ body {
   animation: pulse 1s infinite;
 }
 .char.mistyped { background: #ffb4b4 !important; color: #7a0000 !important; }
+.char-newline { font-weight: 800; }
+.char-newline.pending, .char-newline.current { color: #4fa8ff; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
 
 /* Overlays */
@@ -250,6 +394,12 @@ body {
 }
 .overlay-card h2 { font-family: 'Fredoka', sans-serif; margin-top: 0; }
 .congrats-card { max-width: 560px; }
+.robot-badge {
+  width: 110px;
+  margin: 0 auto 0.5rem;
+  display: block;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.25));
+}
 .recap-list {
   list-style: none;
   padding: 0;
@@ -310,6 +460,6 @@ body {
 @media (max-width: 520px) {
   .prompt-text { font-size: 1.2rem; padding: 1rem; }
   .road { height: 130px; }
-  .vehicle, .vehicle .svg-car, .vehicle .svg-bee { width: 100px; }
+  .vehicle, .vehicle .svg-car, .vehicle .svg-robot { width: 100px; }
   .key-feedback { font-size: 1.5rem; height: 52px; }
 }
