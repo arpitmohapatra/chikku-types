@@ -17,6 +17,7 @@ class TypingEngine {
   handleChar(char) {
     if (this.isComplete) return;
     if (this.startTime === null) this.startTime = performance.now();
+    this.lastChar = char;
 
     const expected = this.targetText[this.index];
     if (char === expected) {
@@ -49,6 +50,7 @@ class TypingEngine {
       accuracy,
       errorCount: this.errorCount,
       elapsedMs,
+      lastChar: this.lastChar,
     };
   }
 }

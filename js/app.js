@@ -40,8 +40,53 @@ const sfx = {
   key: () => tone(880, 0.04, 'square', 0.02),
   error: () => tone(140, 0.18, 'sawtooth', 0.06),
   drillDone: () => { tone(523, 0.12); setTimeout(() => tone(659, 0.12), 120); setTimeout(() => tone(784, 0.2), 240); },
-  fanfare: () => { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.3), i * 150)); },
+  honk: () => { tone(440, 0.35, 'sawtooth', 0.05); tone(554, 0.35, 'sawtooth', 0.04); },
+  fanfare: () => { [523, 659, 784, 1046, 1318].forEach((f, i) => setTimeout(() => tone(f, 0.35), i * 150)); },
 };
+
+// ---------- Confetti ----------
+const confettiCanvas = document.getElementById('confetti-canvas');
+const confettiCtx = confettiCanvas.getContext('2d');
+const CONFETTI_COLORS = ['#ff7a3d', '#ffd54a', '#34b357', '#4fa8ff', '#ff5c8d'];
+function launchConfetti(count = 100, durationMs = 2000) {
+  confettiCanvas.width = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+  confettiCanvas.classList.remove('hidden');
+  const particles = Array.from({ length: count }, () => ({
+    x: Math.random() * confettiCanvas.width,
+    y: -20 - Math.random() * confettiCanvas.height * 0.3,
+    w: 5 + Math.random() * 5,
+    h: 8 + Math.random() * 8,
+    color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+    vy: 2 + Math.random() * 3,
+    vx: -1.5 + Math.random() * 3,
+    rotation: Math.random() * 360,
+    vr: -8 + Math.random() * 16,
+  }));
+  const start = performance.now();
+  function frame(now) {
+    confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    let anyOnScreen = false;
+    for (const p of particles) {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rotation += p.vr;
+      if (p.y < confettiCanvas.height + 20) anyOnScreen = true;
+      confettiCtx.save();
+      confettiCtx.translate(p.x, p.y);
+      confettiCtx.rotate((p.rotation * Math.PI) / 180);
+      confettiCtx.fillStyle = p.color;
+      confettiCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      confettiCtx.restore();
+    }
+    if (anyOnScreen && now - start < durationMs) {
+      requestAnimationFrame(frame);
+    } else {
+      confettiCanvas.classList.add('hidden');
+    }
+  }
+  requestAnimationFrame(frame);
+}
 
 // ---------- Screen management ----------
 function showScreen(name) {
@@ -101,9 +146,31 @@ document.getElementById('back-to-levels').addEventListener('click', () => {
 // ---------- Game screen ----------
 const promptEl = document.getElementById('prompt-text');
 const vehicleEl = document.getElementById('vehicle');
+const roadEl = document.querySelector('.road');
+const keyFeedbackEl = document.getElementById('key-feedback');
 const statLevel = document.getElementById('stat-level');
 const statWpm = document.getElementById('stat-wpm');
 const statAccuracy = document.getElementById('stat-accuracy');
+
+const FINISH_MARGIN_PX = 56; // keeps the car from driving under the finish flag
+
+// translateX(%) is relative to the vehicle's OWN width, not the road, so it
+// under/overshoots the road — compute the real pixel travel distance instead.
+function updateVehiclePosition(progress) {
+  state.currentProgress = progress;
+  const travel = Math.max(0, roadEl.clientWidth - vehicleEl.offsetWidth - FINISH_MARGIN_PX);
+  const x = travel * progress;
+  vehicleEl.style.setProperty('--car-x', `${x}px`);
+}
+window.addEventListener('resize', () => updateVehiclePosition(state.currentProgress || 0));
+
+function showKeyFeedback(char, isCorrect) {
+  if (!char) return;
+  keyFeedbackEl.textContent = char === ' ' ? '␣' : char;
+  keyFeedbackEl.classList.remove('correct', 'incorrect', 'pop');
+  void keyFeedbackEl.offsetWidth; // restart the pop animation
+  keyFeedbackEl.classList.add(isCorrect ? 'correct' : 'incorrect', 'pop');
+}
 
 function startLevel(levelIndex) {
   state.currentLevelIndex = levelIndex;
@@ -124,8 +191,10 @@ function loadDrill() {
   statLevel.textContent = `${level.title} — Drill ${state.currentDrillIndex + 1}/${level.drills.length}`;
   statWpm.textContent = '0 WPM';
   statAccuracy.textContent = '100%';
-  vehicleEl.style.transform = 'translateX(0%)';
+  updateVehiclePosition(0);
   vehicleEl.classList.remove('brake');
+  keyFeedbackEl.textContent = ' ';
+  keyFeedbackEl.className = 'key-feedback';
   renderPromptChars(text, 0);
 }
 
@@ -143,9 +212,10 @@ function renderPromptChars(text, currentIndex) {
 
 function renderProgress(stats) {
   renderPromptChars(state.engine.targetText, stats.index);
-  vehicleEl.style.transform = `translateX(${stats.progress * 100}%)`;
+  updateVehiclePosition(stats.progress);
   statWpm.textContent = `${stats.wpm} WPM`;
   statAccuracy.textContent = `${stats.accuracy}%`;
+  showKeyFeedback(stats.lastChar, true);
   sfx.key();
 }
 
@@ -159,6 +229,7 @@ function renderError(stats) {
   }
   clearTimeout(state.brakeTimeout);
   state.brakeTimeout = setTimeout(() => vehicleEl.classList.remove('brake'), 250);
+  showKeyFeedback(stats.lastChar, false);
   sfx.error();
 }
 
@@ -172,6 +243,7 @@ function onKeyDown(e) {
 function onDrillComplete(stats) {
   document.removeEventListener('keydown', onKeyDown);
   sfx.drillDone();
+  launchConfetti(50, 1200);
   document.getElementById('drill-stats').innerHTML = `
     <p>WPM: <strong>${stats.wpm}</strong></p>
     <p>Accuracy: <strong>${stats.accuracy}%</strong></p>
@@ -218,6 +290,8 @@ function completeLevel() {
     <p>WPM: <strong>${stats.wpm}</strong></p>
     <p>Accuracy: <strong>${stats.accuracy}%</strong></p>
   `;
+  sfx.honk();
+  launchConfetti(140, 2200);
   showOverlay('overlay-level-complete');
 }
 
@@ -243,6 +317,7 @@ function triggerFinalCongrats() {
   saveProgress();
   vehicleEl.classList.add('transforming');
   sfx.fanfare();
+  launchConfetti(220, 3200);
   setTimeout(() => {
     vehicleEl.classList.add('is-bee');
     document.getElementById('congrats-name').textContent = state.progress.playerName;
@@ -253,6 +328,7 @@ function triggerFinalCongrats() {
       </li>
     `).join('');
     showOverlay('overlay-congrats');
+    launchConfetti(220, 3200);
   }, 900);
 }
 
