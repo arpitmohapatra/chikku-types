@@ -114,11 +114,20 @@ function buildKeyboard(container) {
 // toggles a glowing marker at the fixed fingertip position of whichever finger(s) are
 // responsible for `chars` (plus a subtle whole-hand emphasis), so the right finger is
 // always pointed out even for keys far from the home row.
+// Home keys in pinky->ring->middle->index order for each hand, used both to anchor the
+// hand figure and to measure this keyboard's actual key pitch (see reposition() below).
 const HAND_SIDES = [
-  { side: 'left', homeChar: 'd', mirrored: false },  // anchor: left hand's middle finger home key
-  { side: 'right', homeChar: 'k', mirrored: true },  // anchor: right hand's middle finger home key
+  { side: 'left', homeChars: ['a', 's', 'd', 'f'], mirrored: false },
+  { side: 'right', homeChars: [';', 'l', 'k', 'j'], mirrored: true },
 ];
 const FINGER_ROLES = ['pinky', 'ring', 'middle', 'index', 'thumb'];
+
+// Average fractional gap (of the hand artwork's own width) between consecutive fingertips
+// pinky->ring->ring->middle->middle->index, i.e. per-key-pitch spacing in the artwork's own
+// coordinate space. The artwork's real finger spacing isn't perfectly uniform, but this
+// average is what we scale the whole hand by so it matches the keyboard's key pitch —
+// see reposition().
+const HAND_FINGER_PITCH_FRAC = (FINGER_TIP_FRACTIONS.index.x - FINGER_TIP_FRACTIONS.pinky.x) / 3;
 
 function buildHandsOverlay(container, keyMap) {
   const overlay = document.createElement('div');
@@ -153,18 +162,29 @@ function buildHandsOverlay(container, keyMap) {
 
   container.appendChild(overlay);
 
-  // Anchors each hand figure so its middle-fingertip marker sits at the top edge of that
-  // hand's middle-finger home key, letting the rest of the (fixed-pose) hand fall
-  // naturally down/across the home row — recomputed on resize since key pixel positions
-  // change, but never in response to which key is active.
+  // Sizes + anchors each hand figure so ALL FOUR resting fingers (not just one) line up
+  // with their real home keys: the hand artwork's own finger spacing is scaled to match
+  // this keyboard's actual measured key pitch (pinky-key to index-key distance / 3), then
+  // the figure is positioned so its middle-fingertip marker sits at the top edge of the
+  // middle-finger home key. Recomputed on resize (key pixel sizes change), never in
+  // response to which key is active.
   function reposition() {
-    HAND_SIDES.forEach(({ side, homeChar, mirrored }) => {
+    HAND_SIDES.forEach(({ side, homeChars, mirrored }) => {
       const figure = figures[side];
-      const keyEl = keyMap.get(homeChar);
-      const size = figure.offsetWidth;
-      if (!keyEl || !size) return;
+      const [pinkyKey, , , indexKey] = homeChars.map(c => keyMap.get(c));
+      const middleKey = keyMap.get(homeChars[2]);
+      if (!pinkyKey || !indexKey || !middleKey) return;
       const kb = container.getBoundingClientRect();
-      const kr = keyEl.getBoundingClientRect();
+      const pinkyR = pinkyKey.getBoundingClientRect();
+      const indexR = indexKey.getBoundingClientRect();
+      const keyPitchPx = Math.abs((indexR.left + indexR.width / 2) - (pinkyR.left + pinkyR.width / 2)) / 3;
+      if (!keyPitchPx) return; // keyboard not visible/laid out yet
+
+      const size = keyPitchPx / HAND_FINGER_PITCH_FRAC;
+      figure.style.width = `${size}px`;
+      figure.style.height = `${size}px`;
+
+      const kr = middleKey.getBoundingClientRect();
       const midFrac = FINGER_TIP_FRACTIONS.middle;
       // The right hand is mirrored (CSS scaleX(-1)), so a marker drawn at local fraction
       // `f` from the figure's left edge actually renders on-screen at `1 - f` — account

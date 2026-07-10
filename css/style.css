@@ -118,7 +118,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 0.35rem;
-  margin: 1.2rem 0 4rem;
+  margin: 1.2rem 0 7rem;
   user-select: none;
 }
 .keyboard-hands {
@@ -128,11 +128,13 @@ body {
   z-index: 5;
 }
 /* Two fixed-pose hand illustrations resting over the home row (see buildHandsOverlay in
-   app.js). Each hand is always in the same spot; only its fingertip marker(s) light up. */
+   app.js). Each hand is always in the same spot; only its fingertip marker(s) light up.
+   Width/height below are just a pre-JS fallback — app.js sets both inline, scaled so the
+   artwork's own finger spacing matches this keyboard's actual measured key pitch. */
 .hand-figure {
   position: absolute;
-  width: 11.5rem;
-  height: 11.5rem;
+  width: 14.5rem;
+  height: 14.5rem;
   pointer-events: none;
   opacity: 0.68;
   transition: opacity 0.2s ease, left 0.18s ease, top 0.18s ease;
@@ -227,7 +229,7 @@ body {
   .vkey { min-width: 1.5rem; height: 1.7rem; font-size: 0.7rem; }
   .vkey.wide { min-width: 3rem; }
   .vkey.spacebar { min-width: 8rem; }
-  .hand-figure { width: 7.5rem; height: 7.5rem; }
+  .hand-figure { width: 11rem; height: 11rem; }
   .finger-tip-marker { width: 0.75rem; height: 0.75rem; }
 }
 
