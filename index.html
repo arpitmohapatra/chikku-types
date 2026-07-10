@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chikku Car Typing</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚗</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <header class="app-header">
+    <h1>🚗 Chikku Car Typing</h1>
+    <button id="mute-toggle" class="icon-btn" title="Mute / unmute sound">🔊</button>
+  </header>
+
+  <!-- START SCREEN -->
+  <section id="screen-start" class="screen active">
+    <div class="panel">
+      <h2>Ready to race?</h2>
+      <p>Type the words, keep the car moving, and reach the finish line at every level!</p>
+      <label for="player-name">What's your name?</label>
+      <input id="player-name" type="text" maxlength="20" placeholder="Chikku" autocomplete="off">
+      <button id="start-btn" class="primary-btn">Start Adventure 🏁</button>
+    </div>
+  </section>
+
+  <!-- LEVEL SELECT SCREEN -->
+  <section id="screen-levels" class="screen">
+    <h2 id="greeting">Pick a level:</h2>
+    <div id="level-grid" class="level-grid"></div>
+  </section>
+
+  <!-- GAME SCREEN -->
+  <section id="screen-game" class="screen">
+    <div class="stats-bar">
+      <button id="back-to-levels" class="icon-btn" title="Back to levels">⬅</button>
+      <span id="stat-level">Level</span>
+      <span id="stat-wpm">0 WPM</span>
+      <span id="stat-accuracy">100%</span>
+    </div>
+
+    <div class="track">
+      <div class="road">
+        <div class="road-lines"></div>
+        <div id="vehicle" class="vehicle">
+          <svg class="svg-car" viewBox="0 0 120 60" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="60" cy="52" rx="52" ry="5" fill="rgba(0,0,0,0.15)"/>
+            <path d="M10 42 Q10 26 28 24 L40 24 Q46 10 62 10 L80 10 Q94 10 100 24 L108 24 Q116 25 116 36 L116 42 Z" fill="#ef4444"/>
+            <path d="M46 24 Q50 15 62 15 L78 15 Q88 15 94 24 Z" fill="#bfe9ff" stroke="#333" stroke-width="1"/>
+            <line x1="70" y1="15" x2="70" y2="24" stroke="#333" stroke-width="1"/>
+            <circle cx="34" cy="44" r="9" fill="#222"/>
+            <circle cx="34" cy="44" r="3.5" fill="#ccc"/>
+            <circle cx="94" cy="44" r="9" fill="#222"/>
+            <circle cx="94" cy="44" r="3.5" fill="#ccc"/>
+            <rect x="14" y="30" width="8" height="5" rx="2" fill="#ffd54a"/>
+            <rect x="104" y="30" width="8" height="5" rx="2" fill="#ffd54a"/>
+          </svg>
+          <svg class="svg-bee" viewBox="0 0 120 60" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="60" cy="52" rx="52" ry="5" fill="rgba(0,0,0,0.15)"/>
+            <ellipse cx="35" cy="24" rx="16" ry="14" fill="#ffd54a" opacity="0.85"/>
+            <ellipse cx="85" cy="24" rx="16" ry="14" fill="#ffd54a" opacity="0.85"/>
+            <ellipse cx="60" cy="34" rx="46" ry="22" fill="#ffcc00"/>
+            <path d="M20 20 Q60 5 100 20 L100 30 Q60 15 20 30 Z" fill="#1a1a1a"/>
+            <path d="M20 40 Q60 55 100 40 L100 34 Q60 49 20 34 Z" fill="#1a1a1a"/>
+            <circle cx="30" cy="30" r="5" fill="#1a1a1a"/>
+            <circle cx="31" cy="29" r="1.5" fill="#fff"/>
+            <path d="M14 20 Q6 10 4 4" stroke="#1a1a1a" stroke-width="2" fill="none"/>
+            <path d="M20 18 Q16 6 16 0" stroke="#1a1a1a" stroke-width="2" fill="none"/>
+            <circle cx="4" cy="4" r="2" fill="#1a1a1a"/>
+            <circle cx="16" cy="0" r="2" fill="#1a1a1a"/>
+          </svg>
+        </div>
+        <div class="finish-flag">🏁</div>
+      </div>
+    </div>
+
+    <div id="prompt-text" class="prompt-text"></div>
+  </section>
+
+  <!-- OVERLAYS -->
+  <div id="overlay-drill-complete" class="overlay hidden">
+    <div class="overlay-card">
+      <h2>Drill Complete! 🎉</h2>
+      <div id="drill-stats"></div>
+      <button id="next-drill-btn" class="primary-btn">Next Drill</button>
+    </div>
+  </div>
+
+  <div id="overlay-level-complete" class="overlay hidden">
+    <div class="overlay-card">
+      <h2>Level Complete! ⭐</h2>
+      <div id="level-complete-stats"></div>
+      <button id="next-level-btn" class="primary-btn">Next Level</button>
+      <button id="level-complete-to-levels" class="secondary-btn">Level Select</button>
+    </div>
+  </div>
+
+  <div id="overlay-congrats" class="overlay hidden">
+    <div class="overlay-card congrats-card">
+      <h2>🐝 Congratulations, <span id="congrats-name">Champion</span>! 🐝</h2>
+      <p>You typed your way through every level and your car transformed into a bumblebee — you're officially a Typing Champion!</p>
+      <h3>Your Final Lessons — one from every key set:</h3>
+      <ul id="congrats-recap" class="recap-list"></ul>
+      <button id="congrats-restart-btn" class="primary-btn">Back to Levels</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/lessons-data.js"></script>
+<script src="js/game.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
