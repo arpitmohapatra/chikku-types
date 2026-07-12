@@ -465,3 +465,14 @@ body {
   .vehicle, .vehicle .svg-car, .vehicle .svg-robot { width: 100px; }
   .key-feedback { font-size: 1.5rem; height: 52px; }
 }
+
+/* Collapse every animation/transition to near-instant for motion-sensitive players —
+   state still changes (colors, positions), it just stops moving to get there. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

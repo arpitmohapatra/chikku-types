@@ -48,7 +48,9 @@ const sfx = {
 const confettiCanvas = document.getElementById('confetti-canvas');
 const confettiCtx = confettiCanvas.getContext('2d');
 const CONFETTI_COLORS = ['#ff7a3d', '#ffd54a', '#34b357', '#4fa8ff', '#ff5c8d'];
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 function launchConfetti(count = 100, durationMs = 2000) {
+  if (prefersReducedMotion) return; // celebration is decorative, not state-bearing — skip it outright
   confettiCanvas.width = window.innerWidth;
   confettiCanvas.height = window.innerHeight;
   confettiCanvas.classList.remove('hidden');
@@ -252,6 +254,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
 document.getElementById('mute-toggle').addEventListener('click', (e) => {
   state.progress.muted = !state.progress.muted;
   e.currentTarget.innerHTML = state.progress.muted ? ICONS.volumeOff : ICONS.volumeOn;
+  e.currentTarget.setAttribute('aria-label', state.progress.muted ? 'Unmute sound' : 'Mute sound');
   saveProgress();
 });
 
@@ -526,7 +529,9 @@ document.getElementById('congrats-restart-btn').addEventListener('click', () => 
 
 // ---------- Boot ----------
 (function init() {
-  document.getElementById('mute-toggle').innerHTML = state.progress.muted ? ICONS.volumeOff : ICONS.volumeOn;
+  const muteBtn = document.getElementById('mute-toggle');
+  muteBtn.innerHTML = state.progress.muted ? ICONS.volumeOff : ICONS.volumeOn;
+  muteBtn.setAttribute('aria-label', state.progress.muted ? 'Unmute sound' : 'Mute sound');
   if (state.progress.playerName) {
     nameInput.value = state.progress.playerName;
   }
