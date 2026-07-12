@@ -81,3 +81,15 @@ Three JS files, loaded in this order from `index.html`, each with a distinct res
 
 Static site, no build artifacts to generate — GitHub Pages can serve this repo directly (root or `/docs`, per
 whatever the repo's Pages settings point to). No CI/build step is required before pushing.
+
+### Cache-busting
+
+`index.html` loads `css/style.css` and the `js/*.js` files with a `?v=<epoch>` query string so browsers don't
+serve a stale cached copy after a deploy. A tracked git hook (`.githooks/pre-commit`) bumps that timestamp
+automatically whenever a commit touches a `.css`/`.js` file — enable it once per clone with:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Without this config the hook is inert and `?v=` has to be bumped by hand.
