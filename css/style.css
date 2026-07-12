@@ -1,3 +1,5 @@
+/* index.html loads this file with a ?v= cache-buster; the pre-commit hook in
+   .githooks/ bumps it automatically, so edits here don't need a manual bump. */
 :root {
   --sky-top: #7ec8f2;
   --sky-bottom: #cdeaff;

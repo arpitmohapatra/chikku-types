@@ -1,0 +1,11 @@
+#!/bin/sh
+# Auto-bump the ?v= cache-busting query strings in index.html whenever a
+# committed change touches css/js, so GitHub Pages visitors never get a
+# stale cached asset after a push. No build step: just rewrites the query
+# string to the current epoch time and re-stages index.html.
+if git diff --cached --name-only | grep -qE '\.(css|js)$'; then
+  v=$(date +%s)
+  sed -i.bak -E 's/\?v=[0-9a-zA-Z]+/?v='"$v"'/g' index.html
+  rm -f index.html.bak
+  git add index.html
+fi
