@@ -327,6 +327,15 @@ body {
 .vehicle.is-robot .svg-car { display: none; }
 .vehicle.is-robot .svg-robot { display: block; }
 
+.vehicle-sheen {
+  animation: sheen-breathe 3.2s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes sheen-breathe {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.45; }
+}
+
 .vehicle.brake .svg-car {
   animation: brake-shake 0.25s ease;
   filter: drop-shadow(0 0 6px #ff3b3b);

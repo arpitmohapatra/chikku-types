@@ -59,52 +59,102 @@
       <div class="road">
         <div class="road-lines"></div>
         <div id="vehicle" class="vehicle">
-          <!-- Top-view Bumblebee Camaro: yellow body, black roof/glass, twin racing stripes, front (headlights) facing right -->
+          <!-- Top-view Bumblebee Camaro: glossy gradient body, chrome-rimmed tires, pinstriped racing
+               stripes, tinted glass cabin, front (headlights) facing right -->
           <svg class="svg-car" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="103" cy="88" rx="80" ry="8" fill="rgba(0,0,0,0.2)"/>
-            <rect x="35" y="6" width="30" height="16" rx="4" fill="#111"/>
-            <rect x="35" y="78" width="30" height="16" rx="4" fill="#111"/>
-            <rect x="150" y="6" width="30" height="16" rx="4" fill="#111"/>
-            <rect x="150" y="78" width="30" height="16" rx="4" fill="#111"/>
-            <path d="M20 50 C20 32 34 22 55 20 L150 18 C168 18 180 26 186 40 C190 46 190 54 186 60 C180 74 168 82 150 82 L55 80 C34 78 20 68 20 50 Z" fill="#ffcc00" stroke="#3a2c00" stroke-width="2"/>
-            <rect x="20" y="46" width="168" height="8" fill="#141414"/>
-            <rect x="20" y="56" width="168" height="8" fill="#141414"/>
-            <rect x="100" y="30" width="32" height="40" rx="5" fill="#141414"/>
-            <path d="M122 33 L130 33 L133 40 L133 60 L130 67 L122 67 Z" fill="#3a6ea5" opacity="0.6"/>
-            <path d="M110 33 L102 33 L99 40 L99 60 L102 67 L110 67 Z" fill="#3a6ea5" opacity="0.6"/>
-            <rect x="126" y="20" width="9" height="6" rx="2" fill="#111"/>
-            <rect x="126" y="74" width="9" height="6" rx="2" fill="#111"/>
-            <circle cx="181" cy="34" r="5" fill="#eaf6ff"/>
-            <circle cx="181" cy="66" r="5" fill="#eaf6ff"/>
-            <rect x="20" y="30" width="6" height="12" rx="2" fill="#ff3b3b"/>
-            <rect x="20" y="58" width="6" height="12" rx="2" fill="#ff3b3b"/>
+            <defs>
+              <linearGradient id="carBodyGrad" x1="25%" y1="0%" x2="80%" y2="100%">
+                <stop offset="0%" stop-color="#ffe680"/>
+                <stop offset="50%" stop-color="#ffcc00"/>
+                <stop offset="100%" stop-color="#dd9f00"/>
+              </linearGradient>
+              <linearGradient id="carGlassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#a9e0ff" stop-opacity="0.9"/>
+                <stop offset="100%" stop-color="#2a5c8a" stop-opacity="0.9"/>
+              </linearGradient>
+              <radialGradient id="carTireGrad" cx="35%" cy="30%" r="75%">
+                <stop offset="0%" stop-color="#454545"/>
+                <stop offset="100%" stop-color="#0a0a0a"/>
+              </radialGradient>
+              <radialGradient id="carHeadlightGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#fffdf0"/>
+                <stop offset="100%" stop-color="#ffe27a" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <ellipse cx="103" cy="90" rx="78" ry="7" fill="rgba(0,0,0,0.22)"/>
+            <rect x="34" y="5" width="32" height="17" rx="7" fill="url(#carTireGrad)"/>
+            <ellipse cx="50" cy="13.5" rx="8" ry="4.5" fill="#cfcfcf" opacity="0.85"/>
+            <rect x="34" y="78" width="32" height="17" rx="7" fill="url(#carTireGrad)"/>
+            <ellipse cx="50" cy="86.5" rx="8" ry="4.5" fill="#cfcfcf" opacity="0.85"/>
+            <rect x="148" y="5" width="32" height="17" rx="7" fill="url(#carTireGrad)"/>
+            <ellipse cx="164" cy="13.5" rx="8" ry="4.5" fill="#cfcfcf" opacity="0.85"/>
+            <rect x="148" y="78" width="32" height="17" rx="7" fill="url(#carTireGrad)"/>
+            <ellipse cx="164" cy="86.5" rx="8" ry="4.5" fill="#cfcfcf" opacity="0.85"/>
+            <path d="M20 50 C20 32 34 22 55 20 L150 18 C168 18 180 26 186 40 C190 46 190 54 186 60 C180 74 168 82 150 82 L55 80 C34 78 20 68 20 50 Z" fill="url(#carBodyGrad)" stroke="#3a2c00" stroke-width="2"/>
+            <path class="vehicle-sheen" d="M50 26 C82 21 132 21 173 34" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity="0.35"/>
+            <rect x="22" y="45" width="164" height="9" rx="3" fill="#141414"/>
+            <rect x="22" y="55.5" width="164" height="9" rx="3" fill="#141414"/>
+            <rect x="22" y="53.6" width="164" height="1.4" fill="#fff" opacity="0.5"/>
+            <rect x="99" y="29" width="34" height="42" rx="8" fill="#141414"/>
+            <path d="M121 32 L129 32 L132 40 L132 60 L129 68 L121 68 Z" fill="url(#carGlassGrad)"/>
+            <path d="M111 32 L103 32 L100 40 L100 60 L103 68 L111 68 Z" fill="url(#carGlassGrad)"/>
+            <rect x="126" y="19" width="9" height="6" rx="2" fill="#111"/>
+            <rect x="126" y="75" width="9" height="6" rx="2" fill="#111"/>
+            <circle cx="182" cy="34" r="7" fill="url(#carHeadlightGlow)"/>
+            <circle cx="182" cy="34" r="4" fill="#fffef2"/>
+            <circle cx="182" cy="66" r="7" fill="url(#carHeadlightGlow)"/>
+            <circle cx="182" cy="66" r="4" fill="#fffef2"/>
+            <rect x="19" y="29" width="6" height="13" rx="3" fill="#ff3b3b"/>
+            <rect x="19" y="58" width="6" height="13" rx="3" fill="#ff3b3b"/>
           </svg>
           <!-- Robot mode: same Camaro silhouette in "disguise" — angular antenna horns, shoulder-fin plates,
                visible armor joint-seams, and glowing cyan eye-lights swapped in for the headlights -->
           <svg class="svg-robot" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="103" cy="88" rx="80" ry="8" fill="rgba(0,0,0,0.2)"/>
-            <rect x="35" y="6" width="30" height="16" rx="4" fill="#111"/>
-            <rect x="35" y="78" width="30" height="16" rx="4" fill="#111"/>
-            <rect x="150" y="6" width="30" height="16" rx="4" fill="#111"/>
-            <rect x="150" y="78" width="30" height="16" rx="4" fill="#111"/>
-            <path d="M20 50 C20 32 34 22 55 20 L150 18 C168 18 180 26 186 40 C190 46 190 54 186 60 C180 74 168 82 150 82 L55 80 C34 78 20 68 20 50 Z" fill="#ffcc00" stroke="#2a1f00" stroke-width="2"/>
-            <path d="M140 18 L150 4 L156 16 L146 24 Z" fill="#ffcc00" stroke="#2a1f00" stroke-width="1.5"/>
-            <path d="M140 82 L150 96 L156 84 L146 76 Z" fill="#ffcc00" stroke="#2a1f00" stroke-width="1.5"/>
-            <path d="M95 20 L80 4 L100 14 L104 22 Z" fill="#1a1a1a"/>
-            <path d="M95 80 L80 96 L100 86 L104 78 Z" fill="#1a1a1a"/>
-            <rect x="20" y="46" width="168" height="8" fill="#141414"/>
-            <rect x="20" y="56" width="168" height="8" fill="#141414"/>
-            <rect x="100" y="30" width="32" height="40" rx="5" fill="#141414"/>
+            <defs>
+              <linearGradient id="robotBodyGrad" x1="25%" y1="0%" x2="80%" y2="100%">
+                <stop offset="0%" stop-color="#ffe680"/>
+                <stop offset="50%" stop-color="#ffcc00"/>
+                <stop offset="100%" stop-color="#dd9f00"/>
+              </linearGradient>
+              <radialGradient id="robotTireGrad" cx="35%" cy="30%" r="75%">
+                <stop offset="0%" stop-color="#454545"/>
+                <stop offset="100%" stop-color="#0a0a0a"/>
+              </radialGradient>
+              <radialGradient id="robotEyeGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#eafcff"/>
+                <stop offset="55%" stop-color="#4fe8ff" stop-opacity="0.55"/>
+                <stop offset="100%" stop-color="#4fe8ff" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <ellipse cx="103" cy="90" rx="78" ry="7" fill="rgba(0,0,0,0.22)"/>
+            <rect x="34" y="5" width="32" height="17" rx="7" fill="url(#robotTireGrad)"/>
+            <ellipse cx="50" cy="13.5" rx="8" ry="4.5" fill="#cfcfcf" opacity="0.85"/>
+            <rect x="34" y="78" width="32" height="17" rx="7" fill="url(#robotTireGrad)"/>
+            <ellipse cx="50" cy="86.5" rx="8" ry="4.5" fill="#cfcfcf" opacity="0.85"/>
+            <rect x="148" y="5" width="32" height="17" rx="7" fill="url(#robotTireGrad)"/>
+            <ellipse cx="164" cy="13.5" rx="8" ry="4.5" fill="#cfcfcf" opacity="0.85"/>
+            <rect x="148" y="78" width="32" height="17" rx="7" fill="url(#robotTireGrad)"/>
+            <ellipse cx="164" cy="86.5" rx="8" ry="4.5" fill="#cfcfcf" opacity="0.85"/>
+            <path d="M20 50 C20 32 34 22 55 20 L150 18 C168 18 180 26 186 40 C190 46 190 54 186 60 C180 74 168 82 150 82 L55 80 C34 78 20 68 20 50 Z" fill="url(#robotBodyGrad)" stroke="#2a1f00" stroke-width="2"/>
+            <path d="M140 18 L150 3 L157 16 L146 24 Z" fill="url(#robotBodyGrad)" stroke="#2a1f00" stroke-width="1.5"/>
+            <path d="M140 82 L150 97 L157 84 L146 76 Z" fill="url(#robotBodyGrad)" stroke="#2a1f00" stroke-width="1.5"/>
+            <path d="M95 20 L78 3 L100 13 L104 22 Z" fill="#1a1a1a"/>
+            <path d="M95 80 L78 97 L100 87 L104 78 Z" fill="#1a1a1a"/>
+            <path class="vehicle-sheen" d="M50 26 C82 21 132 21 173 34" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity="0.3"/>
+            <rect x="22" y="45" width="164" height="9" rx="3" fill="#141414"/>
+            <rect x="22" y="55.5" width="164" height="9" rx="3" fill="#141414"/>
+            <rect x="22" y="53.6" width="164" height="1.4" fill="#fff" opacity="0.5"/>
+            <rect x="99" y="29" width="34" height="42" rx="8" fill="#141414"/>
             <line x1="70" y1="24" x2="70" y2="76" stroke="#a37f00" stroke-width="1.5" opacity="0.6"/>
             <line x1="150" y1="24" x2="150" y2="76" stroke="#a37f00" stroke-width="1.5" opacity="0.6"/>
-            <rect x="126" y="20" width="9" height="6" rx="2" fill="#111"/>
-            <rect x="126" y="74" width="9" height="6" rx="2" fill="#111"/>
-            <circle cx="181" cy="34" r="8" fill="#4fe8ff" opacity="0.4"/>
-            <circle cx="181" cy="34" r="4.5" fill="#eafcff"/>
-            <circle cx="181" cy="66" r="8" fill="#4fe8ff" opacity="0.4"/>
-            <circle cx="181" cy="66" r="4.5" fill="#eafcff"/>
-            <rect x="20" y="30" width="6" height="12" rx="2" fill="#ff3b3b"/>
-            <rect x="20" y="58" width="6" height="12" rx="2" fill="#ff3b3b"/>
+            <rect x="126" y="19" width="9" height="6" rx="2" fill="#111"/>
+            <rect x="126" y="75" width="9" height="6" rx="2" fill="#111"/>
+            <circle cx="182" cy="34" r="9" fill="url(#robotEyeGlow)"/>
+            <circle cx="182" cy="34" r="4" fill="#eafcff"/>
+            <circle cx="182" cy="66" r="9" fill="url(#robotEyeGlow)"/>
+            <circle cx="182" cy="66" r="4" fill="#eafcff"/>
+            <rect x="19" y="29" width="6" height="13" rx="3" fill="#ff3b3b"/>
+            <rect x="19" y="58" width="6" height="13" rx="3" fill="#ff3b3b"/>
           </svg>
         </div>
         <div class="finish-flag"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"/></svg></div>
